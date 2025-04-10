@@ -1,95 +1,144 @@
-type Marketplace_ContractBlocked {
-  id: ID!
-  nftContract: String!
-  blocked: Boolean!
+type NFT {
+  id: ID! # Composite ID: <contractAddress>-<tokenId>
+  contract: NFTContract!
+  tokenId: BigInt!
+  owner: Account
+  listings: [Listing!]! @derivedFrom(field: "nft")
+  salesHistory: [Sale!]! @derivedFrom(field: "nft")
+  createdAt: BigInt!
+  updatedAt: BigInt!
 }
 
-type Marketplace_FeesWithdrawn {
-  id: ID!
-  token: String!
+type NFTContract {
+  id: ID! # contractAddress
+  address: String!
+  isBlocked: Boolean!
+  royaltyReceivers: [RoyaltyReceiver!]! @derivedFrom(field: "nftContract")
+  nfts: [NFT!]! @derivedFrom(field: "contract")
+  listings: [Listing!]! @derivedFrom(field: "nftContract")
+  sales: [Sale!]! @derivedFrom(field: "nftContract")
+  royaltyDistributions: [RoyaltyDistribution!]! @derivedFrom(field: "nftContract")
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type RoyaltyReceiver {
+  id: ID! # <nftContract>-<receiverAddress>
+  nftContract: NFTContract!
+  receiver: Account!
+  percentage: BigInt!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type Listing {
+  id: ID! # <nftContract>-<tokenId>-<seller>
+  nft: NFT!
+  nftContract: NFTContract!
+  tokenId: BigInt! @index
+  seller: Account!
+  price: BigInt!
+  paymentToken: PaymentToken!
+  status: ListingStatus! @index
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  cancelledAt: BigInt
+  delistedAt: BigInt
+  delistedBy: Account
+  priceHistory: [PriceUpdate!]! @derivedFrom(field: "listing")
+}
+
+type PriceUpdate {
+  id: ID! # <listingId>-<blockNumber>-<logIndex>
+  listing: Listing!
+  oldPrice: BigInt!
+  newPrice: BigInt!
+  timestamp: BigInt!
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  CANCELLED
+  DELISTED
+}
+
+type Sale {
+  id: ID! # <txHash>-<logIndex>
+  nft: NFT!
+  nftContract: NFTContract!
+  tokenId: BigInt!
+  buyer: Account!
+  seller: Account!
+  price: BigInt!
+  paymentToken: PaymentToken!
+  platformFee: BigInt!
+  royaltyFee: BigInt!
+  timestamp: BigInt!
+}
+
+type PaymentToken {
+  id: ID! # tokenAddress 
+  address: String!
+  isAllowed: Boolean!
+  sales: [Sale!]! @derivedFrom(field: "paymentToken")
+  listings: [Listing!]! @derivedFrom(field: "paymentToken")
+  feesWithdrawn: [FeeWithdrawal!]! @derivedFrom(field: "token")
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type FeeWithdrawal {
+  id: ID! # <txHash>-<logIndex>
+  token: PaymentToken!
   platformAmount: BigInt!
   royaltyAmount: BigInt!
+  timestamp: BigInt!
 }
 
-type Marketplace_Listed {
-  id: ID!
-  seller: String!
-  nftContract: String!
-  tokenId: BigInt!
-  price: BigInt!
-  paymentToken: String!
-}
-
-type Marketplace_ListingCancelled {
-  id: ID!
-  seller: String!
-  nftContract: String!
-  tokenId: BigInt!
-}
-
-type Marketplace_ListingDelisted {
-  id: ID!
-  nftContract: String!
-  tokenId: BigInt!
-  moderator: String!
-}
-
-type Marketplace_ListingPriceUpdated {
-  id: ID!
-  seller: String!
-  nftContract: String!
-  tokenId: BigInt!
-  newPrice: BigInt!
-}
-
-type Marketplace_ModeratorAdded {
-  id: ID!
-  moderator: String!
-}
-
-type Marketplace_ModeratorRemoved {
-  id: ID!
-  moderator: String!
-}
-
-type Marketplace_OwnershipTransferred {
-  id: ID!
-  previousOwner: String!
-  newOwner: String!
-}
-
-type Marketplace_PaymentTokenUpdated {
-  id: ID!
-  token: String!
-  allowed: Boolean!
-}
-
-type Marketplace_PlatformFeeUpdated {
-  id: ID!
-  newFeePercentage: BigInt!
-}
-
-type Marketplace_RoyaltyDistributed {
-  id: ID!
-  nftContract: String!
-  receivers: [String!]!
+type RoyaltyDistribution {
+  id: ID! # <txHash>-<logIndex>
+  nftContract: NFTContract!
+  # receivers: [Account!]! @derivedFrom(field: "todo") ## TODO: add this via a derived field
   amounts: [BigInt!]!
+  timestamp: BigInt!
 }
 
-type Marketplace_RoyaltyUpdated {
-  id: ID!
-  nftContract: String!
-  receivers: [String!]!
-  percentages: [BigInt!]!
+type Account {
+  id: ID! # address
+  address: String!
+  nftsOwned: [NFT!]! @derivedFrom(field: "owner")
+  salesAsBuyer: [Sale!]! @derivedFrom(field: "buyer")
+  salesAsSeller: [Sale!]! @derivedFrom(field: "seller")
+  listings: [Listing!]! @derivedFrom(field: "seller")
+  isModerator: Boolean!
+  isOwner: Boolean!
+  delistedListings: [Listing!]! @derivedFrom(field: "delistedBy")
+  royaltyReceived: [RoyaltyReceiver!]! @derivedFrom(field: "receiver")
+  createdAt: BigInt!
+  updatedAt: BigInt!
 }
 
-type Marketplace_Sale {
-  id: ID!
-  buyer: String!
-  seller: String!
-  nftContract: String!
-  tokenId: BigInt!
-  price: BigInt!
-  paymentToken: String!
+type MarketplaceConfig {
+  id: ID! # "marketplace"
+  owner: Account!
+  platformFeePercentage: BigInt!
+  createdAt: BigInt!
+  updatedAt: BigInt!
 }
 
+# Event Tracking (for reference only)
+# Marketplace_ContractBlocked - Updates NFTContract.isBlocked
+# Marketplace_FeesWithdrawn - Creates FeeWithdrawal
+# Marketplace_Listed - Creates Listing with status ACTIVE
+# Marketplace_ListingCancelled - Updates Listing.status to CANCELLED
+# Marketplace_ListingDelisted - Updates Listing.status to DELISTED
+# Marketplace_ListingPriceUpdated - Updates Listing.price and creates PriceUpdate
+# Marketplace_ModeratorAdded - Updates Account.isModerator to true
+# Marketplace_ModeratorRemoved - Updates Account.isModerator to false
+# Marketplace_OwnershipTransferred - Updates MarketplaceConfig.owner
+# Marketplace_PaymentTokenUpdated - Updates PaymentToken.isAllowed
+# Marketplace_PlatformFeeUpdated - Updates MarketplaceConfig.platformFeePercentage
+# Marketplace_RoyaltyDistributed - Creates RoyaltyDistribution
+# Marketplace_RoyaltyUpdated - Creates/Updates RoyaltyReceiver entries
+# Marketplace_Sale - Creates Sale and updates Listing.status to SOLD
