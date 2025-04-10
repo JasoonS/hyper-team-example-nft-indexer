@@ -1,0 +1,95 @@
+type Marketplace_ContractBlocked {
+  id: ID!
+  nftContract: String!
+  blocked: Boolean!
+}
+
+type Marketplace_FeesWithdrawn {
+  id: ID!
+  token: String!
+  platformAmount: BigInt!
+  royaltyAmount: BigInt!
+}
+
+type Marketplace_Listed {
+  id: ID!
+  seller: String!
+  nftContract: String!
+  tokenId: BigInt!
+  price: BigInt!
+  paymentToken: String!
+}
+
+type Marketplace_ListingCancelled {
+  id: ID!
+  seller: String!
+  nftContract: String!
+  tokenId: BigInt!
+}
+
+type Marketplace_ListingDelisted {
+  id: ID!
+  nftContract: String!
+  tokenId: BigInt!
+  moderator: String!
+}
+
+type Marketplace_ListingPriceUpdated {
+  id: ID!
+  seller: String!
+  nftContract: String!
+  tokenId: BigInt!
+  newPrice: BigInt!
+}
+
+type Marketplace_ModeratorAdded {
+  id: ID!
+  moderator: String!
+}
+
+type Marketplace_ModeratorRemoved {
+  id: ID!
+  moderator: String!
+}
+
+type Marketplace_OwnershipTransferred {
+  id: ID!
+  previousOwner: String!
+  newOwner: String!
+}
+
+type Marketplace_PaymentTokenUpdated {
+  id: ID!
+  token: String!
+  allowed: Boolean!
+}
+
+type Marketplace_PlatformFeeUpdated {
+  id: ID!
+  newFeePercentage: BigInt!
+}
+
+type Marketplace_RoyaltyDistributed {
+  id: ID!
+  nftContract: String!
+  receivers: [String!]!
+  amounts: [BigInt!]!
+}
+
+type Marketplace_RoyaltyUpdated {
+  id: ID!
+  nftContract: String!
+  receivers: [String!]!
+  percentages: [BigInt!]!
+}
+
+type Marketplace_Sale {
+  id: ID!
+  buyer: String!
+  seller: String!
+  nftContract: String!
+  tokenId: BigInt!
+  price: BigInt!
+  paymentToken: String!
+}
+

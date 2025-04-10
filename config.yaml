@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: envio-indexer
+networks:
+- id: 645749
+  start_block: 0
+  contracts:
+  - name: Marketplace
+    address:
+    - 0x36afD2A3601e079f4aBaFE8A3715188Ef9947356
+    handler: src/EventHandlers.ts
+    events:
+    - event: ContractBlocked(address indexed nftContract, bool blocked)
+    - event: FeesWithdrawn(address indexed token, uint256 platformAmount, uint256 royaltyAmount)
+    - event: Listed(address indexed seller, address indexed nftContract, uint256 indexed tokenId, uint256 price, address paymentToken)
+    - event: ListingCancelled(address indexed seller, address indexed nftContract, uint256 indexed tokenId)
+    - event: ListingDelisted(address indexed nftContract, uint256 indexed tokenId, address indexed moderator)
+    - event: ListingPriceUpdated(address indexed seller, address indexed nftContract, uint256 indexed tokenId, uint256 newPrice)
+    - event: ModeratorAdded(address indexed moderator)
+    - event: ModeratorRemoved(address indexed moderator)
+    - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+    - event: PaymentTokenUpdated(address indexed token, bool allowed)
+    - event: PlatformFeeUpdated(uint256 newFeePercentage)
+    - event: RoyaltyDistributed(address indexed nftContract, address[] receivers, uint256[] amounts)
+    - event: RoyaltyUpdated(address indexed nftContract, address[] receivers, uint256[] percentages)
+    - event: Sale(address indexed buyer, address indexed seller, address indexed nftContract, uint256 tokenId, uint256 price, address paymentToken)
+unordered_multichain_mode: true
